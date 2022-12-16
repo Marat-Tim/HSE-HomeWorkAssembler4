@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+int max_delay = 5;
+
 // Объявление потоков.
 pthread_t thread1, thread2, thread3;
 // Мьютекс для консольного вывода.
@@ -31,7 +33,7 @@ void *worker1_doWork(void *arg) {
     int i = 1;
     while (i <= pin_count) {
         // Имитация работы.
-        int delay = rand() % 5;
+        int delay = rand() % max_delay;
         sleep(delay);
 
         int is_normal_pin = rand() % 2;
@@ -63,7 +65,7 @@ void *worker2_doWork(void *arg) {
         // Сообщает, что можно положить булавку в первый буфер.
         sem_post(&buffer1_put_sem);
         // Имитация работы.
-        int delay = rand() % 5;
+        int delay = rand() % max_delay;
         sleep(delay);
         printfSync("Second worker sharpened pin%d in %d seconds\n", i, delay);
         // Ждет когда можно будет положить булавку во второй буфер.
@@ -83,7 +85,7 @@ void *worker3_doWork(void * arg) {
         int i = buffer2;
         buffer2 = 0;
         sem_post(&buffer2_put_sem);
-        int delay = rand() % 5;
+        int delay = rand() % max_delay;
         sleep(delay);
         int is_normal_pin = rand() % 2;
         if (is_normal_pin) {
@@ -95,7 +97,10 @@ void *worker3_doWork(void * arg) {
     return NULL;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 2) {
+        max_delay = atoi(argv[1]);
+    }
     pthread_mutex_init(&write_mutex, NULL);
     // Изначально в первый буфер можно положить булавку, но нельзя взять.
     sem_init(&buffer1_put_sem, 0, 1);
